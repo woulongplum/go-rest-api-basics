@@ -2,6 +2,8 @@ package main
 
 import (
 	"go-rest-api-basics/cmd/handlers"
+	"go-rest-api-basics/internal/db"
+	"log"
 
 	"encoding/json"
 	"net/http"
@@ -14,6 +16,22 @@ type HeeloRequest struct {
 }
 
 func main() {
+
+	//DB 接続
+	conn,err := db.ConnectSQLite()
+	if err != nil {
+		log.Fatal("DB接続エラー:", err)
+	}
+
+	//テーブル作成（初期化
+	if err := db.InitSQLite(conn); err != nil {
+		log.Fatal("テーブル作成エラー:", err)
+	}
+
+	//DBをハンドラーにセット
+	handlers.SetDB(conn)
+
+	//ルーター設定
 	r := chi.NewRouter()
 
 	r.Get("/hello", HelloHandler)
@@ -22,6 +40,8 @@ func main() {
 	r.Post("/todos", handlers.CreateTodoHandler)
 	r.Put("/todos/{id}",handlers.UpdateTodoHandler)
 	r.Delete("/todos/{id}",handlers.DeleteTodoHandler)
+
+	//サーバー起動
 	http.ListenAndServe(":8080", r)
 }
 
