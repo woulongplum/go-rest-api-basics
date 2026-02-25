@@ -32,18 +32,19 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//DBにINSERT
-	result , err := DB.Exec(
-		"INSERT INTO todos (text, done) VALUES (?,?)",
-		req.Text,
-		false,
-	)
+	var id int 
+	err := DB.QueryRow( 
+		"INSERT INTO todos (text, done) VALUES ($1, $2) RETURNING id", 
+		req.Text, 
+		false, 
+	).Scan(&id)
 
 	if err != nil {
 		http.Error(w,"DB error", http.StatusInternalServerError)
 		return
 	}
 	
-	id , _ := result.LastInsertId()
+	
 
 	todo := models.Todo{
 		ID: int(id),
@@ -116,7 +117,7 @@ func UpdateTodoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result , err := DB.Exec(
-		"UPDATE todos SET text = ?, done = ? WHERE id = ? ",
+		"UPDATE todos SET text = $1, done = $2 WHERE id = $3",
 		req.Text,
 		req.Done,
 		todoID,
@@ -154,7 +155,7 @@ func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result , err := DB.Exec("DELETE FROM todos WHERE id = ?",todoID)
+	result , err := DB.Exec("DELETE FROM todos WHERE id = $1",todoID)
 	if err != nil {
 		http.Error(w,"DB delete error", http.StatusInternalServerError)
 		return

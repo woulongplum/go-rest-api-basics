@@ -18,13 +18,13 @@ type HeeloRequest struct {
 func main() {
 
 	//DB 接続
-	conn,err := db.ConnectSQLite()
+	conn,err := db.ConnectPostgreSQL()
 	if err != nil {
 		log.Fatal("DB接続エラー:", err)
 	}
 
 	//テーブル作成（初期化
-	if err := db.InitSQLite(conn); err != nil {
+	if err := db.InitPostgreSQL(conn); err != nil {
 		log.Fatal("テーブル作成エラー:", err)
 	}
 
